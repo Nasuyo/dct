@@ -24,7 +24,8 @@ def mouse_callback(event, x, y, flags, param):
         mouse_pressed = False
         e_x, e_y = x, y
         dst = cv2.filter2D(image[s_y:y, s_x:x, :], -1, kernel)
-        image[s_y:y, s_x:x] = dst        
+        image[s_y:y, s_x:x] = dst  
+        image_to_show = np.copy(image)      
 
 # Get user supplied values ------------------------------------------------
 imagePath1 = "im1.jpg"
@@ -40,32 +41,31 @@ gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
 # Detect faces in the image
 faces = faceCascade.detectMultiScale(
-    gray,
-    scaleFactor=1.31,
-    minNeighbors=1,
-    minSize=(200, 200)
+    gray,  # works on the gray scale image
+    scaleFactor=1.31,  # compensates for some faces being closer to the camera than others
+    minNeighbors=1,  # defines how many objects are found near the current one before declaration
+    minSize=(200, 200)  # minimum size of the window
 )
 
 print("Found {0} faces!".format(len(faces)))
 
 # Blur the faces
-smoothing = 150
+smoothing = 150  # the larger the number the more intense is the blurring
 kernel = np.ones((smoothing, smoothing))/smoothing/smoothing
 for (x, y, w, h) in faces:
-#    cv2.rectangle(image, (x, y), (x+w, y+h), (0, 255, 0), 2)
-#    print(x, y, w, h)
-#    print(np.shape(image[y:y+h, x:x+w]))
-#    dst = cv2.GaussianBlur(image[y:y+h, x:x+w, :], (smoothing, smoothing), 0)
     dst = cv2.filter2D(image[y:y+h, x:x+w, :], -1, kernel)
     image[y:y+h, x:x+w] = dst
 
 cv2.imwrite("output1.jpg", image)
 
 # User input -----------------------------------------------------------------
+# shrink the image so it fits the screen when asking for user input
 width = int(image.shape[1]*0.2)
 height = int(image.shape[0]*0.2)
 image = cv2.resize(image, (width, height), interpolation=cv2.INTER_AREA)
 
+# image_to_show is the one that is displayed, image is the one that is edited.
+# Whenever you see changes in the image displayed, it is because image_to_show was newly assigned
 image_to_show = np.copy(image)
 
 mouse_pressed = False
@@ -135,8 +135,6 @@ while True:
     elif k == ord('s'):  # save
         image_to_show = np.copy(image)
         cv2.imwrite("output_user2.png", image_to_show)
-    elif k == ord('r'):  # reload
-        image_to_show = np.copy(image)
     elif k == 27:
         break
 
